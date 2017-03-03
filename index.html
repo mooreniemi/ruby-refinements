@@ -1,50 +1,288 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+    <title>ruby refinements</title>
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/solarized.css">
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+link.rel = 'stylesheet';
+link.type = 'text/css';
+link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+<style>
+.reveal pre {
+box-shadow: none;
+width: 100%;
+}
+</style>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h3>let's do ruby refinements!</h3>
+          <img src="http://vignette1.wikia.nocookie.net/p__/images/8/85/Dan_Rooby_ur_Bobbies_with_Gauntlet.png/revision/latest?cb=20160120035513&path-prefix=protagonist" style="border:none; background: none; box-shadow: none;"></section>
+        <section>
+          <h4>ruby has a nice central metaphor</h4>
+          <pre>
+              <code data-trim data-noescape class="ruby">
+              receiver = Receiver.new
+              receiver.message
 
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
+              # or, implicit receiver
+              message
+              # => NameError: undefined local variable or method `message' for main:Object
 
-		<script>
-			// More info https://github.com/hakimel/reveal.js#configuration
-			Reveal.initialize({
-				history: true,
+              # this metaphor also applies to core types
+              [1, 2, 3].first
+              </code>
+            </pre>
+        </section>
 
-				// More info https://github.com/hakimel/reveal.js#dependencies
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+        <section>
+          <h4>but it has some limits...</h4>
+          <pre>
+              <code data-trim data-noescape class="ruby">
+              class Cat
+                def meow
+                  "meow"
+                end
+                def louder
+                  upcase + " said the cat"
+                end
+              end
+
+              c = Cat.new
+              c.meow.louder
+              # => NoMethodError: undefined method `louder' for "meow":String
+              </code>
+            </pre>
+        </section>
+
+        <section>
+          <h4>solution 1: wrap it in a method</h4>
+          <pre>
+              <code data-trim data-noescape class="ruby">
+              class Cat
+                def meow
+                  "meow"
+                end
+                def louder(meow)
+                  meow.upcase + " said the cat"
+                end
+              end
+
+              c = Cat.new
+              c.louder(c.meow)
+              # => "MEOW said the cat"
+              </code>
+            </pre>
+        </section>
+
+        <section>
+          <h4>solution 2: return self & use side-effects</h4>
+          <pre>
+              <code data-trim data-noescape class="ruby">
+class Cat
+  attr_reader :meow
+  def meow
+    @meow = "meow"
+    self
+  end
+  def louder
+    @meow.upcase + " said the cat"
+  end
+end
+
+c = Cat.new
+c.meow.louder
+# => "MEOW said the cat"
+              </code>
+            </pre>
+        </section>
+
+        <section>
+          <h4>solution 3: monkeypatch</h4>
+<pre>
+<code data-trim data-noescape class="ruby">
+class String
+  def louder
+    upcase + " said the cat"
+  end
+end
+</code>
+</pre>
+          <pre>
+              <code data-trim data-noescape class="ruby">
+
+class Cat
+  def meow
+    "meow"
+  end
+end
+
+c = Cat.new
+c.meow.louder
+# => "MEOW said the cat"
+              </code>
+            </pre>
+        </section>
+
+        <section>
+<ul>
+<li>solution 1: boilerplate</li>
+<li>solution 2: boilerplate</li>
+<li>solution 3: no boilerplate!! <span class="fragment">😍💯💯👍</span></li>
+</ul>
+        </section>
+
+        <section>
+          <h5>monkeypatching is bad!!!!</h5>
+          <img src="http://vignette4.wikia.nocookie.net/villains/images/c/cf/JasperHelmetVisor.png/revision/latest/scale-to-width-down/2000?cb=20150917010056" style="border:none; background: none; box-shadow: none; height: 400px;">
+          <img src="http://vignette3.wikia.nocookie.net/p__/images/1/12/Ruby_Steven_Universe.png/revision/latest?cb=20150313212816&path-prefix=protagonist" style="border:none; background: none; box-shadow: none;">
+        </section>
+
+<section>
+<h4>this is bad</h4>
+<pre>
+<code data-trim data-noescape class="ruby">
+class Array
+  def first
+    if rand(1..10) == 1
+      'wat'
+    else
+      super
+    end
+  end
+end
+</code>
+</pre>
+</section>
+
+<section>
+<h4>fine!! i love boilerplate! ill just write that FOREVER</h4>
+<img src="http://vignette3.wikia.nocookie.net/gemcrust/images/d/d6/Mad_Ruby.png/revision/latest?cb=20161021000330" style="border:none; background: none; box-shadow: none;">
+</section>
+
+<section>
+<h4>hold up. you can...</h4>
+<img src="http://vignette4.wikia.nocookie.net/steven-universe/images/b/bb/NewGarnetRev.png/revision/latest?cb=20150722184559" style="border:none; background: none; box-shadow: none;">
+</section>
+        <section>
+          <h4>✨refine it✨</h4>
+<pre>
+<code data-trim data-noescape class="ruby">
+module Loud
+  refine String do
+    def louder
+      upcase + " said the cat"
+    end
+  end
+end
+</code>
+</pre>
+          <pre>
+              <code data-trim data-noescape class="ruby">
+
+class Cat
+  def meow
+    "meow"
+  end
+end
+
+<mark>using Loud</mark>
+c = Cat.new
+c.meow.louder
+# => "MEOW said the cat"
+              </code>
+            </pre>
+        </section>
+
+        <section>
+<h4><a href="https://docs.ruby-lang.org/en/2.4.0/syntax/refinements_rdoc.html">refinements</a> will respect scope</h4>
+<pre>
+<code data-trim data-noescape class="ruby">
+# not activated here
+class Foo
+  # not activated here
+  def foo
+    # not activated here
+  end
+  using M
+  # activated here
+  def bar
+    # activated here
+  end
+  # activated here
+end
+# not activated here
+</code>
+</pre>
+<h4 class="fragment">(which is why it beats monkeypatching)</h4>
+        </section>
+
+<section>
+<h4>a real life example</h4>
+<pre>
+<code data-trim data-noescape class="ruby">
+module HashFmap
+  refine Hash do
+    def fmap &block
+      self.reduce({}) { |memo, (k,v)| memo[k] = block.call(v) ; memo }
+    end
+    def fmap_keys &block
+      self.reduce({}) { |memo, (k,v)| memo[block.call(k)] = v ; memo }
+    end
+  end
+end
+</code>
+</pre>
+<pre>
+<code data-trim data-noescape class="ruby">
+using HashFmap
+hash = {foo: "bar"}
+# => {:foo=>"bar"}
+hash.fmap {|v| v.upcase }
+# => {:foo=>"BAR"}
+hash.fmap_keys {|k| k.to_s.upcase.to_sym }
+# => {:FOO=>"bar"}
+</code>
+</pre>
+</section>
+
+<section>
+<img src="https://s-media-cache-ak0.pinimg.com/originals/9e/60/44/9e604412edbbc93fa020df50588a3d74.gif">
+</section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+      // More info https://github.com/hakimel/reveal.js#configuration
+  Reveal.initialize({
+    history: true,
+
+    // More info https://github.com/hakimel/reveal.js#dependencies
+    dependencies: [
+      { src: 'plugin/markdown/marked.js' },
+      { src: 'plugin/markdown/markdown.js' },
+      { src: 'plugin/notes/notes.js', async: true },
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+    ]
+  });
+    </script>
+  </body>
 </html>
