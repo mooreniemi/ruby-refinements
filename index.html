@@ -294,9 +294,9 @@ end
 
 <section>
   <h4>outside of core data types, why not just use a mixin??</h4>
-  <h3>When you include or extend an object, it then applies everywhere the object is used. Do you <i>really</i> need every method on your class everywhere your class appears?</h3>
-  <h3>My opinion: I prefer a smaller surface area on my objects with explicit cues about their contextualized behavior near to where they are used.</h3>
-  <h3>Example: I could make a to_json method on my model/extract that to a mixin, or create an independent Serializer object. Both are totally fine. But now you have a new option: refine your model to have an as_json method!</h3>
+  <p>When you include or extend an object, it then applies everywhere the object is used. Do you <i>really</i> need every method on your class everywhere your class appears?</p>
+  <p>My opinion: I prefer a smaller surface area on my objects with explicit cues about their contextualized behavior near to where they are used.</p>
+  <p>Example: I could make a to_json method on my model/extract that to a mixin, or create an independent Serializer object. Both are totally fine. But now you have a new option: refine your model to have an as_json method!</p>
 </section>
 
 <section>
