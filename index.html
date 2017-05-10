@@ -229,11 +229,41 @@ end
 # not activated here
 </code>
 </pre>
-<h4 class="fragment">(which is why it beats monkeypatching)</h4>
+<h4 class="fragment">(which is why it beats monkeypatching 🍌)</h4>
         </section>
 
+        <section>
+          <h3>examples</h3>
+          <img src="ruby.png" style="border:none; background: none; box-shadow: none; height: 200px;">
+          </section>
 <section>
-<h4>a real life example</h4>
+<h4>a real life example (part one)</h4>
+<pre>
+<code data-trim data-noescape class="ruby">
+module HashFmap
+  refine Hash do
+    def fmap &block
+      self.reduce({}) { |memo, (k,v)| memo.merge!({ k => block.call(v) }) }
+    end
+  end
+end
+</code>
+</pre>
+<pre>
+<code data-trim data-noescape class="ruby">
+h = {:foo=>"bar", :biz=>"baz"}
+h.map {|k, v| v.upcase }
+# => ["BAR", "BAZ"]
+
+using HashFmap
+h.fmap(&:upcase)
+# => {:foo=>"BAR", :biz=>"BAZ"}
+</code>
+</pre>
+</section>
+
+<section>
+<h4>a real life example (part two)</h4>
 <pre>
 <code data-trim data-noescape class="ruby">
 module 3rdPartyAPIParams
@@ -264,7 +294,7 @@ end
 </section>
 
 <section>
-<h4>a real life example (part two)</h4>
+<h4>a real life example (part three)</h4>
 <pre>
 <code data-trim data-noescape class="ruby">
 module MyWeirdFormatting
@@ -293,14 +323,27 @@ end
 </section>
 
 <section>
-  <h4>outside of core data types, why not just use a mixin??</h4>
-  <p>When you include or extend an object, it then applies everywhere the object is used. Do you <i>really</i> need every method on your class everywhere your class appears?</p>
-  <p>My opinion: I prefer a smaller surface area on my objects with explicit cues about their contextualized behavior near to where they are used.</p>
-  <p>Example: I could make a to_json method on my model/extract that to a mixin, or create an independent Serializer object. Both are totally fine. But now you have a new option: refine your model to have an as_json method!</p>
+  <h3>re: why not just use a mixin or inheritence??</h3>
+  <p class="fragment">Do you <i>really</i> need every method on your class everywhere your class appears?</p>
+  <p class="fragment"><em>Really really??</em></p>
+  <p class="fragment">My opinion: when an object has a smaller "surface area" of methods at base, and I extend its behavior explicitly in select contexts, I find it easier to reason about.</p>
 </section>
 
 <section>
+<pre>
+<code data-trim data-noescape class="ruby">
+pry(main)> my_refined_object.methods
+# => [ :to_s, :as_json, :inherited ]
+pry(main)> my_object_bloated_with_mixins.methods
+# => [ :to_s, :as_json, :random_method, :irrelevant, :wont_work, :inherited , :idc, :definitely_wrong, :mysterious ]
+</code>
+</pre>
+<p>Literally, pry into some code and call .methods on it. What's truly useful for your receiver to accept as a message <em>in that calling context?</em></p>
+</section>
+<section>
   <h4>thanks for listening!</h4>
+  <img src="ruby2.png" style="border:none; background: none; box-shadow: none; height: 200px;">
+  <h4>questions?</h4>
 </section>
       </div>
     </div>
