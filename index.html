@@ -266,7 +266,7 @@ h.fmap(&:upcase)
 <h4>a real life example (part two)</h4>
 <pre>
 <code data-trim data-noescape class="ruby">
-module 3rdPartyAPIParams
+module ThirdPartyAPIParams
   refine ModelOne do
     def params
       { ParamOne: 21 }
@@ -283,7 +283,7 @@ end
 <pre>
 <code data-trim data-noescape class="ruby">
 class Worker
-  using 3rdPartyAPIParams
+  using ThirdPartyAPIParams
   def perform(id, model)
     m = model.find(id)
     APIClient.post(m.params)
@@ -308,13 +308,14 @@ end
 </pre>
 <pre>
 <code data-trim data-noescape class="ruby">
-class ThingUserFormatted
+class ThingService
   using MyWeirdFormatting
   attr_accessor :thing
+
   def initialize(thing)
     @thing = thing
   end
-  def store_thing_string
+  def store
     $db.store(thing.id, thing.as_weird_format)
   end
 end
